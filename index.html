@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+ 
+  <link href='style.css' rel='stylesheet' type='text/css'>
+ 
+</head>
+<body>
+  <div class="show-report">
+    <label for=""> WPM:</label> <span id="wpm-report-field">3</span><br />
+    <label for="">Error:</label> <span id="error-report-field"> 3</span><br />
+    <label for="">Correct Percent:</label> <span id="correct-report-field"> 3</span><br />
+    <button id="pushToDB">put to db</button>
+  </div>
+  <div class="text-input text-input-blur" tabindex="0"> 
+   <div class ="input-fragment">
+   </div>
+  </div>
+  <script src="https://craig.global.ssl.fastly.net/js/mousetrap/mousetrap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+   <script src="typing.js"></script>
+   <script src="https://www.gstatic.com/firebasejs/3.1.0/firebase.js"></script>
+   <script src="database.js"></script>
+   
+</body>
+</html>
