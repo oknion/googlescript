@@ -6,28 +6,38 @@ var config = {
 };
 firebase.initializeApp(config);
 // Get a reference to the database service
-var database = firebase.database();
+var tpDB = firebase.database();
+
+var configDb={
+    usersUrl:"/users/",
+    samplesUrl:"/samples/samples/",
+    samplesTypeUrl:"/samples/types/",
+    userSample:"/users/samples/",
+    userSampleType:"/users/samplebytype/",
+
+}
+
 
 function putUserInfo(userInfo) {
-    firebase.database().ref('/users/' + userInfo.username).set(userInfo);
+    tpDB.ref(configDb.usersUrl + userInfo.username).set(userInfo);
 
 }
 
 
 function putUserKeyStat(username, keyStatObj) {
-    firebase.database().ref('/users/' + username + "/" + keyStatObj.key).set(keyStatObj);
+    tpDB.ref(configDb.usersUrl + username + "/" + keyStatObj.key).set(keyStatObj);
 
 }
 
 function putSample(sample) {
     if (verifySample(sample)) {
-        var sampleRef = firebase.database().ref('/samples/');
+        var sampleRef = tpDB.ref(configDb.samplesUrl);
         sampleRef.transaction(function () {
 
             var newSampleKey = sampleRef.push().key;
             var updates = {};
-            alert(newSampleKey);
-            updates['/samples/' + newSampleKey] = sample;
+
+            updates[newSampleKey] = sample;
 
             var type = sample.type;
 
@@ -57,56 +67,97 @@ function verifySample(sample) {
         ;
 }
 function getSample(sampleId) {
-    var url = '/samples/samples/' + sampleId;
-    firebase.database().ref(url).once('value').then(function (snapshot) {
-        return snapshot.val();
+    return new Promise(function(resolve,reject){
+        var url = configDb.samplesUrl + sampleId;
+        tpDB.ref(url).once('value').then(function (snapshot) {
+            console.log("get Sample:"+url+" complete");
+            resolve(snapshot.val());
+        },function errorOccurs(errorObj){
+            console.log("get Sample:"+url+" Error"+errorObj.code);
+            reject(errorObj);
+        });
     });
 }
 function putSampleType(sampleType) {
-    firebase.database().ref('/samples/types/' + sampleType.id).set(sampleType.value);
+    tpDB.ref(configDb.samplesTypeUrl + sampleType.id).set(sampleType.value);
 
 }
-function getSampleType(type,callback,) {
-    var url = '/samples/types/' + type;
-    console.log("getdata");
-    firebase.database().ref(url).once('value').then(function (snapshot) {
-    var returnValue= snapshot.val();
-       return callback(returnValue,callback1);
-        console.log("getdata complete");
-    },function errorOccurs(errorOjb){
-        console.log("The read failed: " + errorOjb.code);
-    });
-
-console.log("get complete")
-    }
+function getSampleType(type) {
+    return new Promise(function(resolve,reject){
+        var url =configDb.samplesTypeUrl + type;
+        console.log("get sampleType:"+url);
+        tpDB.ref(url).once('value').then(function (snapshot) {
+            var sampleType= snapshot.val();
+            resolve(sampleType);
+        },function errorOccurs(errorOjb){
+            reject(errorOjb);
+            console.log("The read failed: " + errorOjb.code);
+        });
+        console.log("get complete:"+url);
+    })
+}
 
 
 function getRandom(max) {
     return Math.floor(Math.random() * max);
 }
-function getRandomSampleByType(type,callback) {
+function getRandomSampleByType(type) {
+    console.log("enter getRandomType");
+  var promise = new Promise(function (resolve,reject){
+      getSampleType(type).then(function(data){
+          var index=  getRandom(data.length-1);
+          alert(JSON.stringify(data[index]));
 
-    getSampleType(type,function(sampleType){
-        if (sampleType == null) return null;
-        var size = sampleType.length;
-        var sampleId = sampleType[getRandom(size - 1)];
-        return getSample(sampleId);
-    });
+          getSample(data[index]).then(function(sample){
 
+              resolve(sample);
+          })
+      })
+  })
+return promise;
 
 }
 
 function putTakeSample(takeSampleObj) {
-    firebase.database().ref('/users/takesamples/' + takeSampleObj.type).set(takeSampleObj);
+    tpDB.ref('/users/takesamples/' + takeSampleObj.type).set(takeSampleObj);
 }
 function putUserSample(userSampleObj) {
-    firebase.database().ref('/users/' + userSampleObj.username + "/" + userSampleObj.id).set(userSampleObj);
+
+    tpDB.ref(configDb.userSample + userSampleObj.username + "/" + userSampleObj.id).set(userSampleObj);
+
+    var sampleRef = tpDB.ref(configDb.userSample+ userSampleObj.username +"/");
+    sampleRef.transaction(function () {
+
+        var newSampleKey = sampleRef.push().key;
+        var updates = {};
+
+        updates[newSampleKey] = userSampleObj;
+
+        var type = userSampleObj.type;
+
+        for (var i = 0; i < type.length; i++) {
+            var typeValue = getSampleType(type[i]);
+            if (typeValue == undefined) {
+                typeValue = [];
+            }
+            typeValue.push(newSampleKey);
+            putSampleType({
+                id: type[i],
+                value: typeValue
+            });
+        }
+        sampleRef.update(updates);
+    })
+    return true;
 }
 
 function getUserInfo(userId) {
-    firebase.database().ref('/users/' + userId).once('value').then(function (snapshot) {
-        return snapshot.val();
-    });
+
+    return new Promise(function(resolve,reject){
+        tpDB.ref('/users/' + userId).once('value').then(function (snapshot) {
+            resolve(snapshot.val());
+        });
+    })
 }
 
 function getUserKeyStat(username, key) {
@@ -126,9 +177,9 @@ function main() {
     })
 }
 function testGetRandomSample(type) {
-   getRandomSampleByType(type,function(value){
-       alert(value);
-   });
+    getRandomSampleByType(type).then(function(data){
+alert(JSON.stringify(data))
+    });
 }
 testGetRandomSample('A');
 $("#pushToDB").click(function () {
