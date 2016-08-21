@@ -1,3 +1,6 @@
+var TypingDatabase=(function(){
+
+})();
 var config = {
     apiKey: "AIzaSyA0aiPn5GtKixPQP73lZ7iX2GMlAOMhJ4I",
     authDomain: "typingpractise.firebaseapp.com",
@@ -17,16 +20,18 @@ var configDb={
 
 }
 
-
 function putUserInfo(userInfo) {
     tpDB.ref(configDb.usersUrl + userInfo.username).set(userInfo);
 
 }
+function getSampleTypeThatHaveErrorAlot(username){
+
+    return getRandomSampleByType('A');
 
 
+}
 function putUserKeyStat(username, keyStatObj) {
     tpDB.ref(configDb.usersUrl + username + "/" + keyStatObj.key).set(keyStatObj);
-
 }
 
 function putSample(sample) {
@@ -119,10 +124,15 @@ return promise;
 }
 
 function putTakeSample(takeSampleObj) {
-    tpDB.ref('/users/takesamples/' + takeSampleObj.type).set(takeSampleObj);
-}
-function putUserSample(userSampleObj) {
+   return new Promise(function(resolve,reject){
+   	tpDB.ref('/users/takesamples/' + takeSampleObj.type).push(takeSampleObj.id,function(){
+   		resolve(1);
+   	});
+   }) 
 
+}
+
+function putUserSample(userSampleObj) {
     tpDB.ref(configDb.userSample + userSampleObj.username + "/" + userSampleObj.id).set(userSampleObj);
 
     var sampleRef = tpDB.ref(configDb.userSample+ userSampleObj.username +"/");
@@ -134,19 +144,10 @@ function putUserSample(userSampleObj) {
         updates[newSampleKey] = userSampleObj;
 
         var type = userSampleObj.type;
-
-        for (var i = 0; i < type.length; i++) {
-            var typeValue = getSampleType(type[i]);
-            if (typeValue == undefined) {
-                typeValue = [];
-            }
-            typeValue.push(newSampleKey);
-            putSampleType({
-                id: type[i],
-                value: typeValue
-            });
-        }
-        sampleRef.update(updates);
+        putTakeSample({type:takeSampleObj.type,
+        				id:newSampleKey}).then(function(data){
+        					sampleRef.update(updates);
+        				});
     })
     return true;
 }

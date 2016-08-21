@@ -1,5 +1,5 @@
 class CountWPM{
-  
+
    constructor() {
      this.numWord=0;
      this.correctWord=[];
@@ -22,7 +22,6 @@ class CountWPM{
   setEndTime(endTime){
     this.endTime=endTime;
   };
-  
 };
 var countWPM=new CountWPM();
 var collectWPM=[];
@@ -55,6 +54,7 @@ function moveCusor(currentPosElem){
   report(countWPM);
     console.log(collectWPM[collectWPM.length-1].getWPM());
     console.log(collectWPM);
+      putUserSample()
    renew(hello);
   }else{
     
@@ -118,9 +118,12 @@ function genInput(s){
 };
 function renew(s){
   countWPM=new CountWPM();
-  var inputText=genInput(s);
-  container.html(inputText);
-  container.children(":first-child").addClass("current-cursor-pos");
+    getSampleTypeThatHaveErrorAlot("sf").then(function(sample){
+        var inputText=genInput(sample.text);
+        container.html(inputText);
+        container.children(":first-child").addClass("current-cursor-pos");
+    })
+
 };
 
 
