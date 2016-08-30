@@ -1,0 +1,80 @@
+function main() {
+  // Config
+ var accountSelector = MccApp
+     .accounts()
+     .withCondition("Impressions > 1")
+     .forDateRange("LAST_MONTH")
+     .orderBy("Clicks DESC");
+
+ var spreadsheetLink="https://docs.google.com/spreadsheets/d/1rOEtVixMr5ZiEeq6FT0G5MZsQA1Al4aJTYRd3JKvEZU/edit";
+ var sheetName="rawdata";
+// var runDate="20160815";
+  var runDate = Utilities.formatDate(getPreviousDate(), "GMT-0700", "yyyyMMdd");
+  
+  
+  // Xoa du lieu cu
+  
+ var accountIterator = accountSelector.get();
+ var spreadsheet = SpreadsheetApp.openByUrl(spreadsheetLink);
+ Logger.log("Import data from "+runDate+" -> "+runDate+ " to "+spreadsheet.getName());
+ var sheet = spreadsheet.getSheetByName(sheetName);
+ deleteRowWithDate(sheet,runDate);
+  
+  // Chay
+ Logger.log("Start Importing.....");
+  while (accountIterator.hasNext()) {
+   var account = accountIterator.next();
+   var accountName=account.getName();
+   Logger.log(account.getName())
+   MccApp.select(account);
+   var report = AdWordsApp.report("SELECT Date,CampaignName,AdGroupName,Criteria,Cost,Impressions,Clicks " +
+       "FROM KEYWORDS_PERFORMANCE_REPORT WHERE Impressions > 0 " +
+       "DURING "+runDate+","+runDate);
+  
+  var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    
+    var date=row['Date'];
+    var campaignName = row['CampaignName'];
+    var adgroupName = row['AdGroupName'];
+    var keywordName= row['Criteria'];
+    var clicks = row['Clicks'];
+    var impressions = row['Impressions'];
+    var cost = row['Cost'];
+    var rowData=[accountName,date,campaignName,adgroupName,keywordName,cost,impressions,clicks];
+    sheet.appendRow(rowData);
+  }
+  Logger.log(accountName+" Complete!.....");
+ }
+}
+
+function getPreviousDate(){
+var MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
+var now = new Date();
+var previousDate = new Date(now.getTime() - 1 * MILLIS_PER_DAY);
+  return previousDate; 
+}
+
+function deleteRowWithDate(sheet,date){
+  // This represents ALL the data
+ var range = sheet.getDataRange();
+ var values = range.getValues();
+ var dateColumn=1;
+ // This logs the spreadsheet in CSV format with a trailing comma
+ var deleteRows=[];
+ for (var i = 0; i < values.length; i++) {
+   var  row=values[i][dateColumn];
+   var formatedDate=Utilities.formatDate(new Date(row), "GMT-0700", "yyyyMMdd");
+   if(formatedDate===date){
+     deleteRows.push(i);
+   }
+ }
+  if(deleteRows.length>0){
+    sheet.deleteRows(deleteRows[0]+1, deleteRows.length);
+  }
+// for (var i = 0; i < deleteRows.length; i++) {
+//   sheet.deleteRow(deleteRows[i]);
+// }
+  Logger.log("Delete Old data "+date+" complete!");
+}
