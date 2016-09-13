@@ -1,0 +1,50 @@
+function main() {
+  
+  // Config
+ var accountSelector = MccApp
+     .accounts()
+     .withCondition("Impressions > 1")
+     .forDateRange("LAST_MONTH")
+     .orderBy("Clicks DESC");
+
+// var runDate="20160815";
+ var runDate = Utilities.formatDate(getPreviousDate(), "GMT-0700", "yyyyMMdd");
+  
+  
+  // Xoa du lieu cu
+  
+ var accountIterator = accountSelector.get();
+ Logger.log("Import data from "+runDate+" -> "+runDate+ " to ");
+  var full_report="";
+  // Chay
+ Logger.log("Start Importing.....");
+  while (accountIterator.hasNext()) {
+   var account = accountIterator.next();
+   var accountName=account.getName();
+   Logger.log(account.getName())
+   MccApp.select(account);
+  
+    var m_stat = account.getStatsFor(runDate, runDate);
+    var m_report = "\n" + account.getName() + " : ";
+    
+    var m_cost = m_stat.getCost();
+    var m_click = m_stat.getClicks();
+    var m_cpc = m_cost/m_click;
+    var m_report = m_report + m_cost + " đ -> " + m_click + " clicks (CPC= " + Utilities.formatString('%01.3f', m_cpc) + " đ)";
+    full_report+=m_report+"\n";
+
+
+ }
+      
+    MailApp.sendEmail("oknion@gmail.com", "Auto Report - Google Adword", full_report);
+    Logger.log(full_report+ " sent");
+
+
+}
+
+function getPreviousDate(){
+var MILLIS_PER_DAY = 1000*60*60 * 24;
+var now = new Date();
+var previousDate = new Date(now.getTime() - 1 * MILLIS_PER_DAY);
+  return previousDate; 
+}
