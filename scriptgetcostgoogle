@@ -1,15 +1,26 @@
 function main() {
+  // manual
+var fromDateStr="2016/09/15";
+var toDateStr="2016/10/19";
+  // auto
+  
+//var fromDateStr=Utilities.formatDate(getPreviousDate(), "GMT+0700", "yyyy/MM/dd");
+//var toDateStr=Utilities.formatDate(getPreviousDate(), "GMT+0700", "yyyy/MM/dd");
+  
+var runDates=  getDateRange(fromDateStr,toDateStr);
+runDates.forEach(function(runDate){
+  Logger.log(runDate);
+   
   // Config
  var accountSelector = MccApp
      .accounts()
-     .withCondition("Impressions > 1")
-     .forDateRange("LAST_MONTH")
+     .withCondition("Impressions > 0")
+     .forDateRange("LAST_30_DAYS")
      .orderBy("Clicks DESC");
 
- var spreadsheetLink="https://docs.google.com/spreadsheets/d/1rOEtVixMr5ZiEeq6FT0G5MZsQA1Al4aJTYRd3JKvEZU/edit";
+ var spreadsheetLink="https://docs.google.com/spreadsheets/d/10Byr1UQvJ3Q0etYUFmOyAVS1dOnkWNr_DUerWnt251I/edit#gid=0";
  var sheetName="rawdata";
-// var runDate="20160815";
-  var runDate = Utilities.formatDate(getPreviousDate(), "GMT-0700", "yyyyMMdd");
+ //var runDate = Utilities.formatDate(getPreviousDate(), "GMT+0700", "yyyyMMdd");
   
   
   // Xoa du lieu cu
@@ -27,8 +38,9 @@ function main() {
    var accountName=account.getName();
    Logger.log(account.getName())
    MccApp.select(account);
-   var report = AdWordsApp.report("SELECT Date,CampaignName,AdGroupName,Criteria,Cost,Impressions,Clicks " +
-       "FROM KEYWORDS_PERFORMANCE_REPORT WHERE Impressions > 0 " +
+ 
+  var report = AdWordsApp.report("SELECT Date,CampaignName,CampaignId,AdGroupName,AdGroupId,Cost,Impressions,Clicks " +
+       "FROM ADGROUP_PERFORMANCE_REPORT WHERE Impressions > 0 " +
        "DURING "+runDate+","+runDate);
   
   var rows = report.rows();
@@ -37,18 +49,24 @@ function main() {
     
     var date=row['Date'];
     var campaignName = row['CampaignName'];
+    var campaignId = row['CampaignId'];
     var adgroupName = row['AdGroupName'];
-    var keywordName= row['Criteria'];
+    var adgroupId = row['AdGroupId'];
     var clicks = row['Clicks'];
     var impressions = row['Impressions'];
     var cost = row['Cost'];
-    var rowData=[accountName,date,campaignName,adgroupName,keywordName,cost,impressions,clicks];
+    var rowData=[accountName,date,campaignName,campaignId,adgroupName,adgroupId,cost,impressions,clicks];
     sheet.appendRow(rowData);
   }
   Logger.log(accountName+" Complete!.....");
+  
  }
+});
+
+ 
 }
 
+  
 function getPreviousDate(){
 var MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
 var now = new Date();
@@ -65,7 +83,7 @@ function deleteRowWithDate(sheet,date){
  var deleteRows=[];
  for (var i = 0; i < values.length; i++) {
    var  row=values[i][dateColumn];
-   var formatedDate=Utilities.formatDate(new Date(row), "GMT-0700", "yyyyMMdd");
+   var formatedDate=Utilities.formatDate(new Date(row), "GMT+0700", "yyyyMMdd");
    if(formatedDate===date){
      deleteRows.push(i);
    }
@@ -78,3 +96,19 @@ function deleteRowWithDate(sheet,date){
 // }
   Logger.log("Delete Old data "+date+" complete!");
 }
+ 
+function getDateRange(fromDateStr,toDateStr){
+  var dateArray = new Array();
+  var fromDate= new Date(Date.parse(fromDateStr));
+  var toDate = new Date(Date.parse(toDateStr));
+  while(fromDate<=toDate){
+    dateArray.push(Utilities.formatDate(fromDate, "GMT+0700", "yyyyMMdd"));
+    fromDate=addDays(fromDate,1); 
+  }
+  Logger.log(dateArray);
+  return dateArray;
+}
+function addDays(theDate, days) {
+    return new Date(theDate.getTime() + days*24*60*60*1000);
+}
+  
