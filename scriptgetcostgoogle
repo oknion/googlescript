@@ -1,7 +1,7 @@
 function main() {
   // manual
-var fromDateStr="2016/09/15";
-var toDateStr="2016/10/19";
+var fromDateStr="2016/09/10";
+var toDateStr="2016/09/10";
   // auto
   
 //var fromDateStr=Utilities.formatDate(getPreviousDate(), "GMT+0700", "yyyy/MM/dd");
@@ -14,11 +14,11 @@ runDates.forEach(function(runDate){
   // Config
  var accountSelector = MccApp
      .accounts()
-     .withCondition("Impressions > 0")
+     .withCondition("Clicks > 0")
      .forDateRange("LAST_30_DAYS")
      .orderBy("Clicks DESC");
 
- var spreadsheetLink="https://docs.google.com/spreadsheets/d/10Byr1UQvJ3Q0etYUFmOyAVS1dOnkWNr_DUerWnt251I/edit#gid=0";
+ var spreadsheetLink="https://docs.google.com/spreadsheets/d/1i4GoTI4bn9LBlrhsOofnmQEEuPR1c8vkhnnnwcq5gNU/edit#gid=0";
  var sheetName="rawdata";
  //var runDate = Utilities.formatDate(getPreviousDate(), "GMT+0700", "yyyyMMdd");
   
@@ -40,10 +40,11 @@ runDates.forEach(function(runDate){
    MccApp.select(account);
  
   var report = AdWordsApp.report("SELECT Date,CampaignName,CampaignId,AdGroupName,AdGroupId,Cost,Impressions,Clicks " +
-       "FROM ADGROUP_PERFORMANCE_REPORT WHERE Impressions > 0 " +
+       "FROM ADGROUP_PERFORMANCE_REPORT WHERE Clicks > 0 " +
        "DURING "+runDate+","+runDate);
   
   var rows = report.rows();
+  var appData = new Array();
   while (rows.hasNext()) {
     var row = rows.next();
     
@@ -56,8 +57,11 @@ runDates.forEach(function(runDate){
     var impressions = row['Impressions'];
     var cost = row['Cost'];
     var rowData=[accountName,date,campaignName,campaignId,adgroupName,adgroupId,cost,impressions,clicks];
-    sheet.appendRow(rowData);
+//    sheet.appendRow(rowData);
+    appData.push(rowData);
+    
   }
+    writeReport(sheet,appData);
   Logger.log(accountName+" Complete!.....");
   
  }
@@ -65,7 +69,22 @@ runDates.forEach(function(runDate){
 
  
 }
-
+function writeReport(sheet,appData){
+  if(appData.length>0){
+    var numColumns =appData[0].length;
+    var numRows = appData.length;
+    var lastRow  = getLastRowColumnA(sheet);
+    
+    var range = sheet.getRange(lastRow+1, 1, numRows, numColumns)
+    range.setValues(appData);
+  
+  }
+}
+function getLastRowColumnA(sheet){
+ var Avals = sheet.getRange("A1:A").getValues();
+var Alast = Avals.filter(String).length; 
+  return Alast;
+}
   
 function getPreviousDate(){
 var MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
@@ -111,4 +130,3 @@ function getDateRange(fromDateStr,toDateStr){
 function addDays(theDate, days) {
     return new Date(theDate.getTime() + days*24*60*60*1000);
 }
-  
