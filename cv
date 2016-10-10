@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <title>test documentready</title>
+        <script   src="http://code.jquery.com/jquery-3.1.1.js"   integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA="   crossorigin="anonymous"></script>
+        <style type="text/css">
+
+        #newcontent{
+                color: red;
+        }
+
+        </style>
+</head>
+
+<body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h4>
+I am a java developer with few year of experience so I'm looking for a job that can help me improving myself not only about technical but also about softskills. I have passion and I want to work      
+
+</h4>
+
+<h4>
+Build tracking system (like google analytic) for marketing team.
+The tracking system collect user activities data then analyze 
+them so we know which campaign get the highest/lowest revenue,
+which user we should target in, etc.
+</h4>
+</body>
+                                                                                     1,1           Top
