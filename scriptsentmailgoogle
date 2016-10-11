@@ -1,50 +1,68 @@
+
 function main() {
   
   // Config
  var accountSelector = MccApp
      .accounts()
      .withCondition("Impressions > 1")
-     .forDateRange("LAST_MONTH")
+     .forDateRange("YESTERDAY")
      .orderBy("Clicks DESC");
 
 // var runDate="20160815";
- var runDate = Utilities.formatDate(getPreviousDate(), "GMT-0700", "yyyyMMdd");
+ var runDate = getPreviousDate(1);
+ var runDateMinus7= getPreviousDate(7);
   
-  
-  // Xoa du lieu cu
-  
- var accountIterator = accountSelector.get();
- Logger.log("Import data from "+runDate+" -> "+runDate+ " to ");
+ var dateArray=getDateRange(runDateMinus7,runDate); 
+
+ Logger.log("Import data from "+runDateMinus7+" -> "+runDate+ " ");
   var full_report="";
   // Chay
- Logger.log("Start Importing.....");
-  while (accountIterator.hasNext()) {
-   var account = accountIterator.next();
-   var accountName=account.getName();
-   Logger.log(account.getName())
-   MccApp.select(account);
-  
-    var m_stat = account.getStatsFor(runDate, runDate);
-    var m_report = "\n" + account.getName() + " : ";
+  dateArray.forEach(function(currentDate){
+    Logger.log("Start Importing....."+currentDate);
+    var accountIterator = accountSelector.get();
     
-    var m_cost = m_stat.getCost();
-    var m_click = m_stat.getClicks();
-    var m_cpc = m_cost/m_click;
-    var m_report = m_report + m_cost + " đ -> " + m_click + " clicks (CPC= " + Utilities.formatString('%01.3f', m_cpc) + " đ)";
-    full_report+=m_report+"\n";
-
-
- }
+    while (accountIterator.hasNext()) {
+      var account = accountIterator.next();
+      var accountName=account.getName();
+      Logger.log(account.getName())
+      MccApp.select(account);
       
-    MailApp.sendEmail("oknion@gmail.com", "Auto Report - Google Adword", full_report);
+      var m_stat = account.getStatsFor(currentDate, currentDate);
+      var m_report = "\n"+currentDate+"," + account.getName() + " : ";
+      
+      var m_cost = m_stat.getCost();
+      var m_click = m_stat.getClicks();
+      var m_cpc = m_cost/m_click;
+      var m_report = m_report + m_cost + " đ -> " + m_click + " clicks (CPC= " + Utilities.formatString('%01.3f', m_cpc) + " đ)";
+      full_report+=m_report+"\n";
+      
+      
+    }
+  });
+      
+//    MailApp.sendEmail("ngocvt@vng.com.vn", "Auto Report - Google Adword", full_report);
     Logger.log(full_report+ " sent");
-
-
 }
 
-function getPreviousDate(){
-var MILLIS_PER_DAY = 1000*60*60 * 24;
-var now = new Date();
-var previousDate = new Date(now.getTime() - 1 * MILLIS_PER_DAY);
+function getPreviousDate(numberOfDay){
+var MILLIS_PER_DAY = 1000*60*60 * 24*numberOfDay;
+var now =new Date(Utilities.formatDate(new Date(), "GMT+0700", "yyyy/MM/dd"));
+var previousDate = new Date(now.getTime() - 1 * MILLIS_PER_DAY );
   return previousDate; 
+}
+
+
+function getDateRange(fromDate,toDate){
+  var dateArray = new Array();
+  Logger.log(fromDate);
+  Logger.log(toDate);
+  while(fromDate<=toDate){
+    dateArray.push(Utilities.formatDate(fromDate, "GMT+0700", "yyyyMMdd"));
+    fromDate=addDays(fromDate,1); 
+  }
+  Logger.log(dateArray);
+  return dateArray;
+}
+function addDays(theDate, days) {
+    return new Date(theDate.getTime() + days*24*60*60*1000);
 }
