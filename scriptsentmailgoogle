@@ -22,11 +22,12 @@ function main() {
     while (accountIterator.hasNext()) {
     
     Logger.log("Start Importing.....");
-  dateArray.forEach(function(currentDate){
       var account = accountIterator.next();
       var accountName=account.getName();
-      Logger.log(account.getName())
+        Logger.log(account.getName())
       MccApp.select(account);
+    dateArray.forEach(function(currentDate){
+    
       
       var m_stat = account.getStatsFor(currentDate, currentDate);
       var m_report = "\n"+currentDate+"," + account.getName() + " : ";
