@@ -17,11 +17,12 @@ function main() {
  Logger.log("Import data from "+runDateMinus7+" -> "+runDate+ " ");
   var full_report="";
   // Chay
-  dateArray.forEach(function(currentDate){
-    Logger.log("Start Importing....."+currentDate);
     var accountIterator = accountSelector.get();
     
     while (accountIterator.hasNext()) {
+    
+    Logger.log("Start Importing.....");
+  dateArray.forEach(function(currentDate){
       var account = accountIterator.next();
       var accountName=account.getName();
       Logger.log(account.getName())
@@ -36,9 +37,9 @@ function main() {
       var m_report = m_report + m_cost + " đ -> " + m_click + " clicks (CPC= " + Utilities.formatString('%01.3f', m_cpc) + " đ)";
       full_report+=m_report+"\n";
       
+  });
       
     }
-  });
       
 //    MailApp.sendEmail("ngocvt@vng.com.vn", "Auto Report - Google Adword", full_report);
     Logger.log(full_report+ " sent");
